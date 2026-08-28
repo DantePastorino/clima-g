@@ -1435,9 +1435,9 @@ ul {
 
 .proyecto-loc {
     font-size: 13px;
-    color: var(--color-primary);
-    background: rgba(34, 62, 97, .08);
-    border: 1px solid rgba(34, 62, 97, .15);
+    color: var(--color-white);
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-2) 100%);
+    border: 1px solid rgba(255, 255, 255, .15);
     padding: 5px 12px;
     border-radius: 999px;
     margin-bottom: 12px;
@@ -1446,10 +1446,17 @@ ul {
     gap: 6px;
     width: fit-content;
     font-weight: 500;
+    box-shadow: 0 4px 12px rgba(230, 140, 58, .25);
 }
 
 .proyecto-loc i {
-    color: var(--color-accent);
+    color: var(--color-white);
+}
+
+/* Mayor especificidad para que el color blanco gane sobre .proyecto-body p */
+.proyecto-body .proyecto-loc,
+.proyecto-locs .proyecto-loc {
+    color: var(--color-white);
 }
 
 .proyecto-meta {
@@ -2015,30 +2022,34 @@ ul {
         inset 0 1px 0 rgba(255, 255, 255, .12);
 }
 
-/* Card gris clara (descripciones largas de texto) */
+/* Card oscura con texto blanco (descripciones largas de texto) */
 .modal-card-text {
-    background: var(--color-bg-alt);
-    color: var(--color-text);
+    background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    color: var(--color-white);
     padding: 14px 20px;
     border-radius: var(--radius-sm);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, .06);
-    border: 1px solid var(--color-border);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, .2),
+        inset 0 1px 0 rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .06);
 }
 
 .modal-card-text .modal-card-content {
-    color: var(--color-text);
+    color: var(--color-white);
     font-size: 14px;
     line-height: 1.55;
 }
 
 .modal-card-text .modal-card-content strong {
-    color: var(--color-text);
+    color: var(--color-white);
     font-weight: 700;
 }
 
 .modal-card-text:hover {
     transform: translateX(4px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, .1);
+    box-shadow:
+        0 8px 18px rgba(0, 0, 0, .3),
+        inset 0 1px 0 rgba(255, 255, 255, .12);
 }
 
 /* Últimas 2 o 3 cards: side-by-side con divisor */
