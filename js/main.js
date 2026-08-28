@@ -5,14 +5,6 @@
 (function () {
     'use strict';
 
-    // ---------- Loader ----------
-    window.addEventListener('load', () => {
-        const loader = document.getElementById('loader');
-        if (loader) {
-            setTimeout(() => loader.classList.add('hidden'), 400);
-        }
-    });
-
     // ---------- Navbar scroll ----------
     const navbar = document.getElementById('navbar');
     const scrollTop = document.getElementById('scrollTop');
