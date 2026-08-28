@@ -2118,7 +2118,7 @@ body.modal-open {
 .clientes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 20px;
+    gap: 50px 40px;
 }
 
 .cliente-card {
@@ -2942,8 +2942,9 @@ body.modal-open {
 
     /* Clientes */
     .clientes-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(2, 130px);
+        justify-content: center;
+        gap: 36px 32px;
     }
 
     .cliente-card { gap: 8px; }

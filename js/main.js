@@ -5,6 +5,12 @@
 (function () {
     'use strict';
 
+    // Evitar que el navegador restaure la posición de scroll al recargar
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
     // ---------- Navbar scroll ----------
     const navbar = document.getElementById('navbar');
     const scrollTop = document.getElementById('scrollTop');
@@ -514,6 +520,10 @@
         } else {
             modalCarouselInit = null;
         }
+
+        // Resetear scroll del modal para que cada card se vea desde el principio
+        const modalInfoEl = document.getElementById('proyectoModalInfo');
+        if (modalInfoEl) modalInfoEl.scrollTop = 0;
 
         proyectoModal.classList.add('open');
         proyectoModal.setAttribute('aria-hidden', 'false');
