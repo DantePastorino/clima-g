@@ -166,12 +166,16 @@
 
             const data = Object.fromEntries(new FormData(contactForm).entries());
             const nombre = data.nombre || 'amigo/a';
-            const servicio = data.servicio || 'tu consulta';
+            const email = data.email || 'no indicado';
+            const telefono = data.telefono || 'no indicado';
+            const servicio = data.servicio || 'sin especificar';
             const mensaje = data.mensaje || '';
 
             const texto =
-                `Hola! Soy ${nombre}.%0A` +
-                `Servicio: ${servicio}%0A` +
+                `Hola! Soy ${nombre}.\n` +
+                `Email: ${email}\n` +
+                `Teléfono: ${telefono}\n` +
+                `Servicio: ${servicio}\n` +
                 `Mensaje: ${mensaje}`;
 
             const url = `https://wa.me/5493516882083?text=${encodeURIComponent(texto)}`;
@@ -226,22 +230,27 @@
     // ---------- Carousel de proyectos ----------
     document.querySelectorAll('[data-carousel]').forEach(carousel => {
         const track = carousel.querySelector('.carousel-track');
-        const slides = track.querySelectorAll('.carousel-slide');
+        let slides = Array.from(track.querySelectorAll('.carousel-slide'));
         const prev = carousel.querySelector('.carousel-prev');
         const next = carousel.querySelector('.carousel-next');
         const dotsContainer = carousel.querySelector('.carousel-dots');
         let index = 0;
         let auto;
+        let dots = [];
 
-        // Crear dots
-        slides.forEach((_, i) => {
-            const dot = document.createElement('button');
-            dot.className = 'dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('aria-label', `Ir a imagen ${i + 1}`);
-            dot.addEventListener('click', () => goTo(i));
-            dotsContainer.appendChild(dot);
-        });
-        const dots = dotsContainer.querySelectorAll('.dot');
+        function rebuildDots() {
+            dotsContainer.innerHTML = '';
+            slides.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'dot' + (i === index ? ' active' : '');
+                dot.setAttribute('aria-label', `Ir a imagen ${i + 1}`);
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            });
+            dots = dotsContainer.querySelectorAll('.dot');
+        }
+
+        rebuildDots();
 
         function syncMedia() {
             slides.forEach((slide, i) => {
@@ -262,6 +271,7 @@
         });
 
         function goTo(i) {
+            if (!slides.length) return;
             index = (i + slides.length) % slides.length;
             track.style.transform = `translateX(-${index * 100}%)`;
             dots.forEach((d, di) => d.classList.toggle('active', di === index));
@@ -290,6 +300,48 @@
             const dx = e.changedTouches[0].clientX - startX;
             if (Math.abs(dx) > 40) goTo(index + (dx < 0 ? 1 : -1));
             startAuto();
+        });
+
+        // Filtrar slides vacíos (imágenes rotas) después de que se carguen
+        const settlePromises = slides.map(slide => new Promise(resolve => {
+            const media = slide.querySelector('img') || slide.querySelector('video');
+            if (!media) { resolve(); return; }
+            const done = () => resolve();
+            if (media.tagName === 'IMG') {
+                if (media.complete) done();
+                else {
+                    media.addEventListener('load', done, { once: true });
+                    media.addEventListener('error', done, { once: true });
+                }
+            } else {
+                if (media.readyState >= 1) done();
+                else {
+                    media.addEventListener('loadeddata', done, { once: true });
+                    media.addEventListener('error', done, { once: true });
+                }
+            }
+        }));
+
+        Promise.all(settlePromises).then(() => {
+            const validSlides = slides.filter(slide => {
+                const media = slide.querySelector('img') || slide.querySelector('video');
+                if (!media) return false;
+                if (media.style.display === 'none') return false;
+                if (media.tagName === 'IMG' && media.naturalWidth === 0) return false;
+                if (media.tagName === 'VIDEO' && media.videoWidth === 0) return false;
+                return true;
+            });
+            if (validSlides.length === slides.length) return;
+
+            slides.forEach(slide => {
+                if (!validSlides.includes(slide)) slide.style.display = 'none';
+            });
+            slides = validSlides;
+            index = Math.min(index, slides.length - 1);
+            if (index < 0) index = 0;
+            rebuildDots();
+            track.style.transform = `translateX(-${index * 100}%)`;
+            if (auto) { stopAuto(); startAuto(); }
         });
 
         // Pausar si la card no está visible
@@ -335,7 +387,7 @@
 
         const tag = card.querySelector('.proyecto-tag');
         const title = card.querySelector('.proyecto-body h3');
-        const desc = card.querySelector('.proyecto-body > p');
+        const desc = card.querySelector('.proyecto-body > p:not(.proyecto-loc)');
         const extras = card.querySelector('.proyecto-extras');
 
         modalMedia.innerHTML = cloneImageMarkup(card);
@@ -366,12 +418,91 @@
 
         modalExtras.innerHTML = '';
         if (extras) {
-            const heading = document.createElement('h4');
-            heading.textContent = 'Detalles del proyecto';
-            modalExtras.appendChild(heading);
             const ul = extras.querySelector('ul');
             if (ul) {
-                modalExtras.appendChild(ul.cloneNode(true));
+                const items = Array.from(ul.querySelectorAll('li'));
+                const total = items.length;
+
+                const featured = items.slice(0, 3);
+                const rest = items.slice(3);
+
+                let lastBlock = [];
+                let middle = rest;
+                if (rest.length >= 3) {
+                    lastBlock = rest.slice(-3);
+                    middle = rest.slice(0, -3);
+                } else if (rest.length === 2) {
+                    lastBlock = rest;
+                    middle = [];
+                }
+
+                if (featured.length) {
+                    const featuredWrap = document.createElement('div');
+                    featuredWrap.className = 'modal-featured-cards';
+                    featured.forEach((item, i) => {
+                        const card = document.createElement('div');
+                        card.className = 'modal-card modal-card-featured';
+
+                        const contentClone = item.cloneNode(true);
+                        const strongInClone = contentClone.querySelector('strong');
+                        if (strongInClone) strongInClone.remove();
+                        const contentHTML = contentClone.innerHTML.trim();
+
+                        const originalStrong = item.querySelector('strong');
+                        const badgeText = originalStrong
+                            ? originalStrong.textContent.trim()
+                            : `0${i + 1}`;
+
+                        let iconHTML = '';
+                        if (badgeText.toLowerCase() === 'en proceso') {
+                            card.classList.add('modal-card-in-progress');
+                            iconHTML = '<div class="modal-card-icon"><i class="fa-solid fa-helmet-safety"></i></div>';
+                        }
+
+                        card.innerHTML =
+                            `<div class="modal-card-badge">${badgeText}</div>` +
+                            `<div class="modal-card-content">${contentHTML}</div>` +
+                            iconHTML;
+                        featuredWrap.appendChild(card);
+                    });
+                    modalExtras.appendChild(featuredWrap);
+                }
+
+                if (middle.length) {
+                    const middleWrap = document.createElement('div');
+                    middleWrap.className = 'modal-detail-cards';
+                    middle.forEach(item => {
+                        const card = document.createElement('div');
+                        const isText = item.classList.contains('proyecto-detalle');
+                        card.className = isText
+                            ? 'modal-card modal-card-text'
+                            : 'modal-card modal-card-detail';
+                        card.innerHTML = `<div class="modal-card-content">${item.innerHTML}</div>`;
+                        middleWrap.appendChild(card);
+                    });
+                    modalExtras.appendChild(middleWrap);
+                }
+
+                if (lastBlock.length >= 2) {
+                    const lastWrap = document.createElement('div');
+                    lastWrap.className = 'modal-last-cards';
+                    if (lastBlock.length === 3) {
+                        lastWrap.classList.add('modal-last-cards-trio');
+                    }
+                    lastBlock.forEach((item, i) => {
+                        const card = document.createElement('div');
+                        card.className = 'modal-card modal-card-last';
+                        card.innerHTML = `<div class="modal-card-content">${item.innerHTML}</div>`;
+                        lastWrap.appendChild(card);
+                        if (i < lastBlock.length - 1) {
+                            const divider = document.createElement('div');
+                            divider.className = 'modal-card-divider';
+                            divider.innerHTML = '<span class="modal-card-divider-dot"></span>';
+                            lastWrap.appendChild(divider);
+                        }
+                    });
+                    modalExtras.appendChild(lastWrap);
+                }
             }
         }
 
@@ -379,6 +510,7 @@
         const modalCarousel = modalMedia.querySelector('[data-carousel]');
         if (modalCarousel) {
             modalCarouselInit = initCarousel(modalCarousel);
+            detectImageOrientation();
         } else {
             modalCarouselInit = null;
         }
@@ -401,24 +533,62 @@
         }, 400);
     }
 
+    // Detectar orientación de cada slide del modal para aplicar edge-to-edge en verticales
+    function detectImageOrientation() {
+        const slides = modalMedia.querySelectorAll('.carousel-slide');
+        slides.forEach(slide => {
+            const media = slide.querySelector('img') || slide.querySelector('video');
+            if (!media || slide.dataset.orientationChecked) return;
+            slide.dataset.orientationChecked = '1';
+
+            const applyOrientation = () => {
+                const width = media.naturalWidth || media.videoWidth || 0;
+                const height = media.naturalHeight || media.videoHeight || 0;
+                if (width > 0 && height > width) {
+                    slide.classList.add('carousel-slide-vertical');
+                }
+            };
+
+            if (media.tagName === 'IMG') {
+                if (media.complete && media.naturalWidth > 0) {
+                    applyOrientation();
+                } else {
+                    media.addEventListener('load', applyOrientation, { once: true });
+                }
+            } else if (media.tagName === 'VIDEO') {
+                if (media.readyState >= 1 && media.videoWidth > 0) {
+                    applyOrientation();
+                } else {
+                    media.addEventListener('loadedmetadata', applyOrientation, { once: true });
+                }
+            }
+        });
+    }
+
     // Inicializador genérico de carrusel (reutilizable para el modal)
     function initCarousel(carousel) {
         const track = carousel.querySelector('.carousel-track');
-        const slides = track.querySelectorAll('.carousel-slide');
+        let slides = Array.from(track.querySelectorAll('.carousel-slide'));
         const prev = carousel.querySelector('.carousel-prev');
         const next = carousel.querySelector('.carousel-next');
         const dotsContainer = carousel.querySelector('.carousel-dots');
         let index = 0;
         let auto;
+        let dots = [];
 
-        slides.forEach((_, i) => {
-            const dot = document.createElement('button');
-            dot.className = 'dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('aria-label', `Ir a imagen ${i + 1}`);
-            dot.addEventListener('click', () => goTo(i));
-            dotsContainer.appendChild(dot);
-        });
-        const dots = dotsContainer.querySelectorAll('.dot');
+        function rebuildDots() {
+            dotsContainer.innerHTML = '';
+            slides.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'dot' + (i === index ? ' active' : '');
+                dot.setAttribute('aria-label', `Ir a imagen ${i + 1}`);
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            });
+            dots = dotsContainer.querySelectorAll('.dot');
+        }
+
+        rebuildDots();
 
         function syncMedia() {
             slides.forEach((slide, i) => {
@@ -430,6 +600,7 @@
         }
 
         function goTo(i) {
+            if (!slides.length) return;
             index = (i + slides.length) % slides.length;
             track.style.transform = `translateX(-${index * 100}%)`;
             dots.forEach((d, di) => d.classList.toggle('active', di === index));
@@ -450,6 +621,48 @@
             const dx = e.changedTouches[0].clientX - startX;
             if (Math.abs(dx) > 40) goTo(index + (dx < 0 ? 1 : -1));
             startAuto();
+        });
+
+        // Filtrar slides vacíos (imágenes rotas) después de que se carguen
+        const settlePromises = slides.map(slide => new Promise(resolve => {
+            const media = slide.querySelector('img') || slide.querySelector('video');
+            if (!media) { resolve(); return; }
+            const done = () => resolve();
+            if (media.tagName === 'IMG') {
+                if (media.complete) done();
+                else {
+                    media.addEventListener('load', done, { once: true });
+                    media.addEventListener('error', done, { once: true });
+                }
+            } else {
+                if (media.readyState >= 1) done();
+                else {
+                    media.addEventListener('loadeddata', done, { once: true });
+                    media.addEventListener('error', done, { once: true });
+                }
+            }
+        }));
+
+        Promise.all(settlePromises).then(() => {
+            const validSlides = slides.filter(slide => {
+                const media = slide.querySelector('img') || slide.querySelector('video');
+                if (!media) return false;
+                if (media.style.display === 'none') return false;
+                if (media.tagName === 'IMG' && media.naturalWidth === 0) return false;
+                if (media.tagName === 'VIDEO' && media.videoWidth === 0) return false;
+                return true;
+            });
+            if (validSlides.length === slides.length) return;
+
+            slides.forEach(slide => {
+                if (!validSlides.includes(slide)) slide.style.display = 'none';
+            });
+            slides = validSlides;
+            index = Math.min(index, slides.length - 1);
+            if (index < 0) index = 0;
+            rebuildDots();
+            track.style.transform = `translateX(-${index * 100}%)`;
+            if (auto) { stopAuto(); startAuto(); }
         });
 
         syncMedia();
