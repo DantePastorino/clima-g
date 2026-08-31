@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+
+# Archivos fuente de video (muy grandes para GitHub)
+*.MOV

@@ -523,15 +523,34 @@
 
         // Resetear scroll del modal para que cada card se vea desde el principio
         const modalInfoEl = document.getElementById('proyectoModalInfo');
-        if (modalInfoEl) modalInfoEl.scrollTop = 0;
+        if (modalInfoEl) {
+            modalInfoEl.scrollTop = 0;
+            updateModalScrollHint();
+            modalInfoEl.addEventListener('scroll', updateModalScrollHint, { passive: true });
+        }
 
         proyectoModal.classList.add('open');
         proyectoModal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modal-open');
     }
 
+    function updateModalScrollHint() {
+        const modalInfoEl = document.getElementById('proyectoModalInfo');
+        const hint = document.getElementById('proyectoModalScrollHint');
+        if (!modalInfoEl || !hint) return;
+        const reachedBottom = modalInfoEl.scrollTop + modalInfoEl.clientHeight >= modalInfoEl.scrollHeight - 8;
+        hint.classList.toggle('hidden', reachedBottom);
+    }
+
     function closeProyectoModal() {
         if (!proyectoModal) return;
+        const modalInfoEl = document.getElementById('proyectoModalInfo');
+        if (modalInfoEl) {
+            modalInfoEl.removeEventListener('scroll', updateModalScrollHint);
+            modalInfoEl.scrollTop = 0;
+        }
+        const hint = document.getElementById('proyectoModalScrollHint');
+        if (hint) hint.classList.add('hidden');
         proyectoModal.classList.remove('open');
         proyectoModal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modal-open');
@@ -719,5 +738,14 @@
                 closeProyectoModal();
             }
         });
+
+        // Botón con flecha hacia abajo: scroll dentro del modal-info
+        const modalInfo = proyectoModal.querySelector('.proyecto-modal-info');
+        const scrollBtn = proyectoModal.querySelector('#proyectoModalScrollDown');
+        if (modalInfo && scrollBtn) {
+            scrollBtn.addEventListener('click', () => {
+                modalInfo.scrollBy({ top: modalInfo.clientHeight * 0.8, behavior: 'smooth' });
+            });
+        }
     }
 })();
