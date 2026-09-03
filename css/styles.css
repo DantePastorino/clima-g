@@ -2036,6 +2036,31 @@ ul {
         inset 0 1px 0 rgba(255, 255, 255, .2);
 }
 
+/* Variante reducida de la card destacada (para "En proceso" cuando
+   aparece como 4to item, para no competir con las 3 cards principales) */
+.modal-card-featured-sm {
+    padding: 12px 18px;
+    gap: 14px;
+}
+
+.modal-card-featured-sm .modal-card-badge {
+    font-size: clamp(16px, 1.8vw, 20px);
+    max-width: 50%;
+}
+
+.modal-card-featured-sm .modal-card-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.modal-card-featured-sm .modal-card-icon i {
+    font-size: 17px;
+}
+
+.modal-card-featured-sm .modal-card-content {
+    font-size: 13.5px;
+}
+
 /* Card "En proceso": estado de proyecto en desarrollo */
 .modal-card-in-progress {
     background: linear-gradient(135deg, #f5b942 0%, #d68f1f 100%);
@@ -3053,6 +3078,12 @@ body.modal-open {
     .modal-card-badge { font-size: 24px; }
 
     .modal-card-featured .modal-card-content { font-size: 14.5px; }
+
+    .modal-card-featured-sm { padding: 10px 14px; gap: 10px; }
+    .modal-card-featured-sm .modal-card-badge { font-size: 17px; }
+    .modal-card-featured-sm .modal-card-icon { width: 34px; height: 34px; }
+    .modal-card-featured-sm .modal-card-icon i { font-size: 15px; }
+    .modal-card-featured-sm .modal-card-content { font-size: 13px; }
 
     .modal-card-detail { padding: 12px 16px; }
 

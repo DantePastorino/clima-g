@@ -479,11 +479,29 @@
                     middleWrap.className = 'modal-detail-cards';
                     middle.forEach(item => {
                         const card = document.createElement('div');
-                        const isText = item.classList.contains('proyecto-detalle');
-                        card.className = isText
-                            ? 'modal-card modal-card-text'
-                            : 'modal-card modal-card-detail';
-                        card.innerHTML = `<div class="modal-card-content">${item.innerHTML}</div>`;
+                        const strongInItem = item.querySelector('strong');
+                        const isEnProceso = strongInItem && strongInItem.textContent.trim().toLowerCase() === 'en proceso';
+
+                        if (isEnProceso) {
+                            // Card destacada tipo "En proceso" (mismo estilo
+                            // que Domo Siglo 21) en versión reducida para
+                            // mantener su posición en el flujo (4to item).
+                            card.className = 'modal-card modal-card-featured modal-card-featured-sm modal-card-in-progress';
+                            const contentClone = item.cloneNode(true);
+                            const strongInClone = contentClone.querySelector('strong');
+                            if (strongInClone) strongInClone.remove();
+                            const contentHTML = contentClone.innerHTML.trim();
+                            card.innerHTML =
+                                `<div class="modal-card-badge">En proceso</div>` +
+                                `<div class="modal-card-content">${contentHTML}</div>` +
+                                '<div class="modal-card-icon"><i class="fa-solid fa-helmet-safety"></i></div>';
+                        } else {
+                            const isText = item.classList.contains('proyecto-detalle');
+                            card.className = isText
+                                ? 'modal-card modal-card-text'
+                                : 'modal-card modal-card-detail';
+                            card.innerHTML = `<div class="modal-card-content">${item.innerHTML}</div>`;
+                        }
                         middleWrap.appendChild(card);
                     });
                     modalExtras.appendChild(middleWrap);
