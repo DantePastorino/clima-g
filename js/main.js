@@ -380,6 +380,24 @@
         syncMedia();
     });
 
+    // ---------- Pre-cargar videos de carruseles al cargar el video principal ----------
+    const empresaVideo = document.querySelector('.empresa-image video');
+    if (empresaVideo) {
+        const preloadCarouselVideos = () => {
+            document.querySelectorAll('[data-carousel] .carousel-slide video').forEach(v => {
+                if (v && !v.src && v.dataset.src) {
+                    v.src = v.dataset.src;
+                    v.load();
+                }
+            });
+        };
+        if (empresaVideo.readyState >= 2) {
+            preloadCarouselVideos();
+        } else {
+            empresaVideo.addEventListener('loadeddata', preloadCarouselVideos, { once: true });
+        }
+    }
+
     // ---------- Init ----------
     onScroll();
 
