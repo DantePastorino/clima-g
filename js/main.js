@@ -350,16 +350,29 @@
             if (auto) { stopAuto(); startAuto(); }
         });
 
+        // Cargar src de videos lazy (data-src) solo cuando el carrusel entra en viewport
+        function loadLazyVideos() {
+            slides.forEach(s => {
+                const v = s.querySelector('video');
+                if (v && !v.src && v.dataset.src) {
+                    v.src = v.dataset.src;
+                    v.autoplay = true;
+                    v.load();
+                }
+            });
+        }
+
         // Pausar si la card no está visible
         if ('IntersectionObserver' in window) {
             const visObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) { startAuto(); syncMedia(); }
+                    if (entry.isIntersecting) { loadLazyVideos(); startAuto(); syncMedia(); }
                     else { stopAuto(); slides.forEach(s => { const v = s.querySelector('video'); if (v) v.pause(); }); }
                 });
             }, { threshold: 0.3 });
             visObserver.observe(carousel);
         } else {
+            loadLazyVideos();
             startAuto();
         }
 
@@ -622,6 +635,16 @@
         let index = 0;
         let auto;
         let dots = [];
+
+        // Cargar src de videos lazy (data-src) — el modal siempre los necesita
+        slides.forEach(s => {
+            const v = s.querySelector('video');
+            if (v && !v.src && v.dataset.src) {
+                v.src = v.dataset.src;
+                v.autoplay = true;
+                v.load();
+            }
+        });
 
         function rebuildDots() {
             dotsContainer.innerHTML = '';
