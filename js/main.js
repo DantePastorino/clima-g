@@ -262,8 +262,19 @@
             slides.forEach((slide, i) => {
                 const v = slide.querySelector('video');
                 if (!v) return;
-                if (i === index) { v.play().catch(() => {}); }
-                else { v.pause(); v.currentTime = 0; }
+                if (i === index) {
+                    const tryPlay = () => {
+                        if (i === index) v.play().catch(() => {});
+                    };
+                    if (v.readyState >= 2) {
+                        tryPlay();
+                    } else {
+                        v.addEventListener('loadeddata', tryPlay, { once: true });
+                    }
+                } else {
+                    v.pause();
+                    v.currentTime = 0;
+                }
             });
         }
 
@@ -354,11 +365,12 @@
         function loadLazyVideos() {
             slides.forEach(s => {
                 const v = s.querySelector('video');
-                if (v && !v.src && v.dataset.src) {
+                if (!v) return;
+                if (!v.src && v.dataset.src) {
                     v.src = v.dataset.src;
-                    v.autoplay = true;
                     v.load();
                 }
+                v.autoplay = true;
             });
         }
 
@@ -657,11 +669,12 @@
         // Cargar src de videos lazy (data-src) — el modal siempre los necesita
         slides.forEach(s => {
             const v = s.querySelector('video');
-            if (v && !v.src && v.dataset.src) {
+            if (!v) return;
+            if (!v.src && v.dataset.src) {
                 v.src = v.dataset.src;
-                v.autoplay = true;
                 v.load();
             }
+            v.autoplay = true;
         });
 
         function rebuildDots() {
@@ -682,8 +695,19 @@
             slides.forEach((slide, i) => {
                 const v = slide.querySelector('video');
                 if (!v) return;
-                if (i === index) { v.play().catch(() => {}); }
-                else { v.pause(); v.currentTime = 0; }
+                if (i === index) {
+                    const tryPlay = () => {
+                        if (i === index) v.play().catch(() => {});
+                    };
+                    if (v.readyState >= 2) {
+                        tryPlay();
+                    } else {
+                        v.addEventListener('loadeddata', tryPlay, { once: true });
+                    }
+                } else {
+                    v.pause();
+                    v.currentTime = 0;
+                }
             });
         }
 
