@@ -2293,6 +2293,11 @@ body.modal-open {
     z-index: 1;
 }
 
+.cliente-item img.cliente-logo-sm {
+    width: 70%;
+    height: 70%;
+}
+
 .cliente-nombre {
     font-weight: 600;
     font-size: 13px;
