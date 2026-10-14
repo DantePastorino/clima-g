@@ -573,7 +573,9 @@
                             card.className = isText
                                 ? 'modal-card modal-card-text'
                                 : 'modal-card modal-card-detail';
-                            card.innerHTML = `<div class="modal-card-content">${item.innerHTML}</div>`;
+                            card.innerHTML =
+                                (isText ? '<div class="modal-card-title">Trabajo realizado:</div>' : '') +
+                                `<div class="modal-card-content">${item.innerHTML}</div>`;
                         }
                         middleWrap.appendChild(card);
                     });
