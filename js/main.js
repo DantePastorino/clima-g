@@ -395,18 +395,48 @@
     // ---------- Pre-cargar videos de carruseles al cargar el video principal ----------
     const empresaVideo = document.querySelector('.empresa-image video');
     if (empresaVideo) {
-        const preloadCarouselVideos = () => {
-            document.querySelectorAll('[data-carousel] .carousel-slide video').forEach(v => {
-                if (v && !v.src && v.dataset.src) {
-                    v.src = v.dataset.src;
-                    v.load();
-                }
-            });
+        // Asegurar autoplay en mobile: algunos navegadores ignoran el atributo
+        empresaVideo.muted = true;
+        empresaVideo.defaultMuted = true;
+        empresaVideo.setAttribute('muted', '');
+        const tryPlay = () => {
+            const p = empresaVideo.play();
+            if (p && p.catch) p.catch(() => {});
         };
-        if (empresaVideo.readyState >= 2) {
-            preloadCarouselVideos();
-        } else {
-            empresaVideo.addEventListener('loadeddata', preloadCarouselVideos, { once: true });
+        tryPlay();
+        empresaVideo.addEventListener('canplay', tryPlay, { once: true });
+        // Si el navegador bloqueó el autoplay (ahorro de batería/datos), reintentar con la primera interacción
+        const unlock = () => {
+            if (empresaVideo.paused) tryPlay();
+            ['touchstart', 'scroll', 'click'].forEach(e => window.removeEventListener(e, unlock));
+        };
+        ['touchstart', 'scroll', 'click'].forEach(e => window.addEventListener(e, unlock, { passive: true }));
+        // Reanudar al volver a ser visible
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && empresaVideo.paused) tryPlay();
+                });
+            }, { threshold: 0.25 }).observe(empresaVideo);
+        }
+
+        // En mobile o con ahorro de datos no precargamos los videos de carruseles (compiten por ancho de banda)
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const saveData = navigator.connection && navigator.connection.saveData;
+        if (!isMobile && !saveData) {
+            const preloadCarouselVideos = () => {
+                document.querySelectorAll('[data-carousel] .carousel-slide video').forEach(v => {
+                    if (v && !v.src && v.dataset.src) {
+                        v.src = v.dataset.src;
+                        v.load();
+                    }
+                });
+            };
+            if (empresaVideo.readyState >= 2) {
+                preloadCarouselVideos();
+            } else {
+                empresaVideo.addEventListener('loadeddata', preloadCarouselVideos, { once: true });
+            }
         }
     }
 
