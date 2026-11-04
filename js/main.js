@@ -825,9 +825,29 @@
         return { goTo, startAuto, stopAuto };
     }
 
+    // En iOS el primer toque puede quedar como "hover" y no disparar el click,
+    // así que en touch abrimos directamente en touchend (si no fue un scroll/swipe).
+    function onTap(el, handler) {
+        let startX = 0, startY = 0, tracking = false;
+        el.addEventListener('touchstart', (e) => {
+            if (e.touches.length !== 1) { tracking = false; return; }
+            tracking = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        el.addEventListener('touchend', (e) => {
+            if (!tracking) return;
+            tracking = false;
+            const t = e.changedTouches[0];
+            if (Math.abs(t.clientX - startX) > 10 || Math.abs(t.clientY - startY) > 10) return;
+            if (handler(e) !== false) e.preventDefault(); // evita el click sintético (y que cierre el modal)
+        });
+        el.addEventListener('click', handler);
+    }
+
     // Asignar eventos a los botones "Ver más"
     document.querySelectorAll('[data-ver-mas]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+        onTap(btn, (e) => {
             e.preventDefault();
             e.stopPropagation();
             const card = btn.closest('.proyecto-card');
@@ -837,8 +857,8 @@
 
     // Abrir modal al hacer click en cualquier parte de la card
     document.querySelectorAll('.proyecto-card').forEach(card => {
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('button, a')) return;
+        onTap(card, (e) => {
+            if (e.target.closest('button, a')) return false;
             openProyectoModal(card);
         });
     });
