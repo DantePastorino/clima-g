@@ -1302,9 +1302,12 @@ ul {
     flex-direction: column;
 }
 
-.proyecto-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lg);
+/* Solo en dispositivos con mouse: en touch el :hover obliga a tocar dos veces */
+@media (hover: hover) and (pointer: fine) {
+    .proyecto-card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+    }
 }
 
 .proyecto-image {
@@ -1324,9 +1327,12 @@ ul {
     transition: transform .8s var(--ease);
 }
 
-.proyecto-card:hover .proyecto-image img,
-.proyecto-card:hover .proyecto-image video {
-    transform: scale(1.08);
+/* Solo en dispositivos con mouse: en touch el :hover obliga a tocar dos veces */
+@media (hover: hover) and (pointer: fine) {
+    .proyecto-card:hover .proyecto-image img,
+    .proyecto-card:hover .proyecto-image video {
+        transform: scale(1.08);
+    }
 }
 
 .proyecto-tag {
@@ -1414,9 +1420,12 @@ ul {
         0 6px 20px rgba(0, 0, 0, .3);
 }
 
-.proyecto-card:hover .proyecto-carousel .carousel-slide img,
-.proyecto-card:hover .proyecto-carousel .carousel-slide video {
-    transform: scale(1.08);
+/* Solo en dispositivos con mouse: en touch el :hover obliga a tocar dos veces */
+@media (hover: hover) and (pointer: fine) {
+    .proyecto-card:hover .proyecto-carousel .carousel-slide img,
+    .proyecto-card:hover .proyecto-carousel .carousel-slide video {
+        transform: scale(1.08);
+    }
 }
 
 .slide-badge {
@@ -1618,15 +1627,18 @@ ul {
     font-size: 12px;
 }
 
-.proyecto-ver-mas:hover {
-    background: var(--color-primary);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(34, 62, 97, .25);
-}
+/* Solo en dispositivos con mouse: en touch el :hover obliga a tocar dos veces */
+@media (hover: hover) and (pointer: fine) {
+    .proyecto-ver-mas:hover {
+        background: var(--color-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(34, 62, 97, .25);
+    }
 
-.proyecto-ver-mas:hover i {
-    transform: translateX(3px);
+    .proyecto-ver-mas:hover i {
+        transform: translateX(3px);
+    }
 }
 
 /* ---------- Modal de proyecto expandido ---------- */
